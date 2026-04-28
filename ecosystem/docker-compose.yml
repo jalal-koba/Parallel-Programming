@@ -1,0 +1,28 @@
+services:
+  db:
+    image: postgres:latest
+    container_name: postgres_db_docker
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: m8498069
+      POSTGRES_DB: parallel-ecommerce
+    ports:
+      - "5434:5432" 
+    volumes:
+      - postgres_final_data:/var/lib/postgresql
+
+  app:
+    build: . 
+    container_name: ecosystem_app
+    depends_on:
+      - db
+    ports:
+      - "8443:8443"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/parallel-ecommerce
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: m8498069
+
+volumes:
+  postgres_final_data:
