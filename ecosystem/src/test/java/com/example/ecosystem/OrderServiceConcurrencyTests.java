@@ -53,7 +53,7 @@ class OrderServiceConcurrencyTests {
     @Test
     void checkoutDoesNotOversellWhenManyUsersBuyAtTheSameTime() throws Exception {
         Product product = productService.createProduct(
-                new ProductRequest("Parallel Laptop", "Concurrency test product", 1000F, 10)
+                new ProductRequest("Parallel Laptop", "Concurrency test product", 1000F, 10, null)
         );
 
         List<Long> userIds = new ArrayList<>();

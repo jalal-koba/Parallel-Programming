@@ -5,6 +5,8 @@ import com.example.ecosystem.Entity.CartItem;
 import com.example.ecosystem.Entity.Order;
 import com.example.ecosystem.Entity.OrderItem;
 import com.example.ecosystem.Entity.Product;
+import com.example.ecosystem.dto.OrderItemResponse;
+import com.example.ecosystem.dto.OrderResponse;
 import com.example.ecosystem.repository.CartItemRepository;
 import com.example.ecosystem.repository.CartRepository;
 import com.example.ecosystem.repository.OrderRepository;
@@ -37,7 +39,7 @@ public class OrderService {
     }
 
     @Transactional
-    public Order checkout(Long userId) {
+    public OrderResponse checkout(Long userId) {
         Cart cart = cartRepository.findByUserId(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Cart not found for user: " + userId));
 
@@ -79,6 +81,61 @@ public class OrderService {
         order.setItems(orderItems);
         Order savedOrder = orderRepository.save(order);
         cartItemRepository.deleteByCart(cart);
-        return savedOrder;
+        return toOrderResponse(savedOrder);
+    }
+
+    @Transactional(readOnly = true)
+    public List<OrderResponse> getOrdersForUser(Long userId) {
+        return orderRepository.findByUserId(userId).stream()
+                .map(this::toOrderResponse)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public OrderResponse getOrderForUser(Long userId, Long orderId) {
+        Order order = orderRepository.findByIdAndUserId(orderId, userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found: " + orderId));
+        return toOrderResponse(order);
+    }
+
+    @Transactional
+    public OrderResponse cancelOrder(Long userId, Long orderId) {
+        Order order = orderRepository.findByIdAndUserId(orderId, userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found: " + orderId));
+
+        if ("CANCELLED".equals(order.getStatus())) {
+            throw new IllegalStateException("Order is already cancelled");
+        }
+
+        for (OrderItem orderItem : order.getItems()) {
+            Product product = productRepository.findByIdWithPessimisticLock(orderItem.getProduct().getId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Product not found: " + orderItem.getProduct().getId()));
+            product.setStockQuantity(product.getStockQuantity() + orderItem.getQuantity());
+        }
+
+        order.setStatus("CANCELLED");
+        return toOrderResponse(orderRepository.save(order));
+    }
+
+    private OrderResponse toOrderResponse(Order order) {
+        return new OrderResponse(
+                order.getId(),
+                order.getUser().getId(),
+                order.getCreatedAt(),
+                order.getStatus(),
+                order.getTotalAmount(),
+                order.getItems().stream().map(this::toOrderItemResponse).toList()
+        );
+    }
+
+    private OrderItemResponse toOrderItemResponse(OrderItem orderItem) {
+        Product product = orderItem.getProduct();
+        return new OrderItemResponse(
+                orderItem.getId(),
+                product.getId(),
+                product.getName(),
+                orderItem.getQuantity(),
+                orderItem.getUnitPriceAtPurchase()
+        );
     }
 }

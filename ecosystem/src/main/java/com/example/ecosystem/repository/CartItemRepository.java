@@ -13,6 +13,8 @@ public interface CartItemRepository extends JpaRepository<CartItem, Long> {
     // البحث عن منتج معين داخل عربة معينة (لتحديث الكمية بدلاً من إضافة عنصر جديد)
     Optional<CartItem> findByCartAndProduct(Cart cart, Product product);
 
+    Optional<CartItem> findByCartAndProductId(Cart cart, Long productId);
+
     // حذف كافة العناصر عند إتمام الطلب وتحويل العربة إلى طلب فعلي (Order)
     void deleteByCart(Cart cart);
 }

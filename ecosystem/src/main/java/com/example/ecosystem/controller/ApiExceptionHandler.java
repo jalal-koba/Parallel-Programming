@@ -1,6 +1,7 @@
 package com.example.ecosystem.controller;
 
 import com.example.ecosystem.service.InsufficientStockException;
+import com.example.ecosystem.service.DuplicateResourceException;
 import com.example.ecosystem.service.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +20,11 @@ public class ApiExceptionHandler {
 
     @ExceptionHandler({InsufficientStockException.class, IllegalStateException.class})
     public ResponseEntity<Map<String, String>> handleConflict(RuntimeException exception) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", exception.getMessage()));
+    }
+
+    @ExceptionHandler(DuplicateResourceException.class)
+    public ResponseEntity<Map<String, String>> handleDuplicate(DuplicateResourceException exception) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", exception.getMessage()));
     }
 

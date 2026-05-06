@@ -1,5 +1,6 @@
 package com.example.ecosystem.Entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.util.List;
@@ -15,7 +16,8 @@ public class Category {
     private String name;
 
     // هذه العلاقة اختيارية، نستخدمها إذا أردنا الوصول للمنتجات من خلال التصنيف
-    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
+    @JsonIgnore
+    @OneToMany(mappedBy = "category")
     private List<Product> products;
 
     // الـ Constructors

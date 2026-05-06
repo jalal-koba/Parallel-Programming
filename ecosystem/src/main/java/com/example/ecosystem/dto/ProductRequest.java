@@ -8,6 +8,7 @@ public record ProductRequest(
         @NotBlank String name,
         String description,
         @NotNull @Min(0) Float price,
-        @NotNull @Min(0) Integer stockQuantity
+        @NotNull @Min(0) Integer stockQuantity,
+        Long categoryId
 ) {
 }

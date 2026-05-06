@@ -9,12 +9,15 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
+import java.util.List;
 
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
 
     // البحث العادي - يستخدمه "علي" لتطبيق الـ Caching لاحقاً
     Optional<Product> findByName(String name);
+
+    List<Product> findByCategoryId(Long categoryId);
 
     /**
      * مهمة بلال وجلال: القفل التشاؤمي (Pessimistic Locking)
