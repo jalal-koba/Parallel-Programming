@@ -7,12 +7,15 @@ import com.example.ecosystem.Entity.OrderItem;
 import com.example.ecosystem.Entity.Product;
 import com.example.ecosystem.dto.OrderItemResponse;
 import com.example.ecosystem.dto.OrderResponse;
+import com.example.ecosystem.event.OrderCreatedEvent;
 import com.example.ecosystem.repository.CartItemRepository;
 import com.example.ecosystem.repository.CartRepository;
 import com.example.ecosystem.repository.OrderRepository;
 import com.example.ecosystem.repository.ProductRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.context.ApplicationEventPublisher;
+
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -25,17 +28,20 @@ public class OrderService {
     private final CartItemRepository cartItemRepository;
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     public OrderService(
             CartRepository cartRepository,
             CartItemRepository cartItemRepository,
             OrderRepository orderRepository,
-            ProductRepository productRepository
+            ProductRepository productRepository,
+            ApplicationEventPublisher eventPublisher
     ) {
         this.cartRepository = cartRepository;
         this.cartItemRepository = cartItemRepository;
         this.orderRepository = orderRepository;
         this.productRepository = productRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     @Transactional
@@ -80,6 +86,15 @@ public class OrderService {
         order.setTotalAmount(totalAmount);
         order.setItems(orderItems);
         Order savedOrder = orderRepository.save(order);
+
+        eventPublisher.publishEvent(
+                new OrderCreatedEvent(
+                        savedOrder.getId(),
+                        savedOrder.getUser().getId(),
+                        savedOrder.getTotalAmount()
+                )
+        );
+
         cartItemRepository.deleteByCart(cart);
         return toOrderResponse(savedOrder);
     }
