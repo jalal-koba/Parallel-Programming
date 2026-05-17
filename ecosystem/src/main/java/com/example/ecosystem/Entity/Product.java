@@ -9,8 +9,12 @@ public class Product {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(length = 100)
     private String name;
+
+    @Column(length = 2000)
     private String description;
+
     private Float price;
 
     @Column(name = "stock_quantity")
