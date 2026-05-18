@@ -1,0 +1,52 @@
+services:
+  traefik:
+    image: traefik:v3.0
+    container_name: traefik_lb
+    command:
+      - "--api.insecure=true"
+      - "--providers.file.filename=/traefik_config.yml"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "10000:80"   # YOUR PROJECT: http://localhost:10000
+      - "10001:8080" # THE MANAGER:  http://localhost:10001
+    volumes:
+      - ./traefik_config.yml:/traefik_config.yml:ro # Mounts the file safely
+    networks:
+      - app-network
+
+  db:
+    image: postgres:latest
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=pass
+      - POSTGRES_DB=ecosystem
+    networks:
+      - app-network
+
+  app1:
+    build: .
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/ecosystem
+      - SPRING_DATASOURCE_USERNAME=user
+      - SPRING_DATASOURCE_PASSWORD=pass
+      - SERVER_PORT=8081
+    depends_on:
+      - db
+    networks:
+      - app-network
+
+  app2:
+    build: .
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/ecosystem
+      - SPRING_DATASOURCE_USERNAME=user
+      - SPRING_DATASOURCE_PASSWORD=pass
+      - SERVER_PORT=8081
+    depends_on:
+      - db
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
