@@ -1,0 +1,54 @@
+services:
+  db:
+    image: postgres:latest
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=pass
+      - POSTGRES_DB=ecosystem
+    ports:
+      - "5434:5432"
+    networks:
+      - app-network
+
+  app1:
+    build: .
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/ecosystem
+      - SPRING_DATASOURCE_USERNAME=user
+      - SPRING_DATASOURCE_PASSWORD=pass
+      - SERVER_PORT=8081
+      - SPRING_BATCH_JOB_ENABLED=false
+    depends_on:
+      - db
+    networks:
+      - app-network
+
+  app2:
+    build: .
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/ecosystem
+      - SPRING_DATASOURCE_USERNAME=user
+      - SPRING_DATASOURCE_PASSWORD=pass
+      - SERVER_PORT=8081
+      - SPRING_BATCH_JOB_ENABLED=false
+    depends_on:
+      - db
+    networks:
+      - app-network
+
+  apache-lb:
+    image: httpd:latest
+    container_name: apache_load_balancer
+    ports:
+      - '9999:80'
+    volumes:
+      - ./httpd.conf:/usr/local/apache2/conf/httpd.conf:ro
+    depends_on:
+      - app1
+      - app2
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
