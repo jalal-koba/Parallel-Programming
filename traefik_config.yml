@@ -1,0 +1,13 @@
+http:
+  routers:
+    spring-router:
+      rule: "PathPrefix(`/`)"
+      service: spring-service
+      entryPoints:
+        - web
+  services:
+    spring-service:
+      loadBalancer:
+        servers:
+          - url: "http://app1:8081"
+          - url: "http://app2:8081"

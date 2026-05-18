@@ -1,0 +1,30 @@
+# Single app + Postgres (batch demo, local dev on port 8080)
+services:
+  db:
+    image: postgres:16
+    container_name: postgres_db_docker
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: m8498069
+      POSTGRES_DB: parallel-ecommerce
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_final_data:/var/lib/postgresql/data
+
+  app:
+    build: .
+    container_name: ecosystem_app
+    depends_on:
+      - db
+    ports:
+      - "8080:8080"
+    environment:
+      SERVER_PORT: 8080
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/parallel-ecommerce
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: m8498069
+
+volumes:
+  postgres_final_data:
