@@ -25,6 +25,7 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/parallel-ecommerce
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: m8498069
+      SERVER_PORT: 8443
 
 volumes:
   postgres_final_data:
