@@ -1,2 +1,0 @@
-2026/05/15 13:07:49 [warn] 276#276: *1617 using uninitialized "server" variable while logging request, client: 127.0.0.1, server: localhost, request: "GET / HTTP/1.1", host: "localhost"
-2026/05/15 13:07:50 [warn] 274#274: *3105 using uninitialized "server" variable while logging request, client: 127.0.0.1, server: localhost, request: "GET /favicon.ico HTTP/1.1", host: "localhost"

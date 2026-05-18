@@ -28,36 +28,39 @@
 
 ## تشغيل المشروع
 
+> **ملاحظة بعد الدمج:** الكود المصدر موجود في جذر المستودع (`src/`، `pom.xml`). مجلد `ecosystem/` نسخة متزامنة منه — يمكن البناء من أي منهما.
+
 ### تشغيل محلي
 
 ```powershell
 .\mvnw.cmd spring-boot:run
 ```
 
-الرابط:
+الرابط الافتراضي (تطوير محلي + batch):
 
 ```text
-http://localhost:8081
+http://localhost:8080
 ```
 
-### تشغيل باستخدام Docker Compose
+### Docker Compose — تطبيق واحد + Postgres (batch / تطوير)
+
+```powershell
+docker compose -f docker-compose.dev.yml up --build
+```
+
+- التطبيق: `http://localhost:8080`
+- Postgres: `localhost:5432` (قاعدة `parallel-ecommerce`)
+
+### Docker Compose — موازنة حمل (نسختان + Apache)
 
 ```powershell
 docker compose down
 docker compose up --build
 ```
 
-تم ضبط التطبيق على المنفذ:
-
-```text
-http://localhost:8081
-```
-
-وقاعدة البيانات PostgreSQL على:
-
-```text
-localhost:5434
-```
+- الموازن: `http://localhost:9999`
+- كل نسخة تطبيق داخلياً على المنفذ `8081`
+- Postgres: `localhost:5434` (قاعدة `ecosystem`)
 
 ## ملف Postman
 
