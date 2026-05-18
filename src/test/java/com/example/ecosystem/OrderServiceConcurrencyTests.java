@@ -11,9 +11,11 @@ import com.example.ecosystem.service.CartService;
 import com.example.ecosystem.service.InsufficientStockException;
 import com.example.ecosystem.service.OrderService;
 import com.example.ecosystem.service.ProductService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,6 +34,7 @@ class OrderServiceConcurrencyTests {
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
     private final OrderRepository orderRepository;
+    private final JdbcTemplate jdbcTemplate;
 
     @Autowired
     OrderServiceConcurrencyTests(
@@ -40,7 +43,8 @@ class OrderServiceConcurrencyTests {
             OrderService orderService,
             ProductRepository productRepository,
             UserRepository userRepository,
-            OrderRepository orderRepository
+            OrderRepository orderRepository,
+            JdbcTemplate jdbcTemplate
     ) {
         this.productService = productService;
         this.cartService = cartService;
@@ -48,6 +52,21 @@ class OrderServiceConcurrencyTests {
         this.productRepository = productRepository;
         this.userRepository = userRepository;
         this.orderRepository = orderRepository;
+        this.jdbcTemplate = jdbcTemplate;
+    }
+
+    @BeforeEach
+    void setUp() {
+        jdbcTemplate.execute("SET REFERENTIAL_INTEGRITY FALSE");
+        jdbcTemplate.execute("TRUNCATE TABLE daily_sales_summary");
+        jdbcTemplate.execute("TRUNCATE TABLE order_items");
+        jdbcTemplate.execute("TRUNCATE TABLE orders");
+        jdbcTemplate.execute("TRUNCATE TABLE cart_items");
+        jdbcTemplate.execute("TRUNCATE TABLE carts");
+        jdbcTemplate.execute("TRUNCATE TABLE wishlists");
+        jdbcTemplate.execute("TRUNCATE TABLE products");
+        jdbcTemplate.execute("TRUNCATE TABLE users");
+        jdbcTemplate.execute("SET REFERENTIAL_INTEGRITY TRUE");
     }
 
     @Test
