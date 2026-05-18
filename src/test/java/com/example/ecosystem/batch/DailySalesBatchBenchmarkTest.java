@@ -1,6 +1,7 @@
 package com.example.ecosystem.batch;
 
 import com.example.ecosystem.repository.DailySalesSummaryRepository;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import org.springframework.batch.core.BatchStatus;
@@ -17,6 +18,7 @@ import java.time.LocalDate;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
+@Tag("nfr4")
 @EnabledIfSystemProperty(named = "heavy", matches = "true")
 class DailySalesBatchBenchmarkTest {
     private static final int ORDER_COUNT = 500_000;

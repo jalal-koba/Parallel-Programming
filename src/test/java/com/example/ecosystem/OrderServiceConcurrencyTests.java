@@ -11,6 +11,7 @@ import com.example.ecosystem.service.CartService;
 import com.example.ecosystem.service.InsufficientStockException;
 import com.example.ecosystem.service.OrderService;
 import com.example.ecosystem.service.ProductService;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -25,6 +26,7 @@ import java.util.concurrent.Future;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
+@Tag("nfr1")
 class OrderServiceConcurrencyTests {
     private final ProductService productService;
     private final CartService cartService;

@@ -12,6 +12,7 @@ import com.example.ecosystem.repository.OrderRepository;
 import com.example.ecosystem.repository.ProductRepository;
 import com.example.ecosystem.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.Job;
@@ -34,6 +35,7 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
+@Tag("nfr4")
 class DailySalesBatchJobTest {
 
     @Autowired private JobLauncher jobLauncher;
