@@ -10,6 +10,14 @@ services:
     networks:
       - app-network
 
+  redis:
+    image: redis:alpine
+    container_name: redis_cache
+    ports:
+      - "6379:6379"
+    networks:
+      - app-network
+
   app1:
     build: .
     environment:
@@ -20,6 +28,7 @@ services:
       - SPRING_BATCH_JOB_ENABLED=false
     depends_on:
       - db
+      - redis
     networks:
       - app-network
 
@@ -33,6 +42,7 @@ services:
       - SPRING_BATCH_JOB_ENABLED=false
     depends_on:
       - db
+      - redis
     networks:
       - app-network
 
