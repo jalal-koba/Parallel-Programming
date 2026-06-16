@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Parallel Ecommerce Ecosystem</title>
+  <style>
+    :root {
+      font-family: system-ui, -apple-system, sans-serif;
+      line-height: 1.55;
+      color: #1a1a1a;
+      background: #f0f2f5;
+      --accent: #0b57d0;
+      --ok: #137333;
+      --card: #fff;
+      --border: #dadce0;
+    }
+    body { max-width: 52rem; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+    .top-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 0.75rem 1rem;
+      margin-bottom: 1.25rem;
+    }
+    .top-title { flex: 1; min-width: 12rem; }
+    h1 { font-size: 1.5rem; font-weight: 650; margin: 0 0 0.25rem; }
+    .subtitle { color: #5f6368; font-size: 0.95rem; margin: 0; }
+    .btn-balancer {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.5rem 1rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #fff;
+      background: var(--accent);
+      border-radius: 8px;
+      text-decoration: none;
+      white-space: nowrap;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.12);
+      transition: background 0.15s ease;
+    }
+    .btn-balancer:hover {
+      background: #0948ad;
+      text-decoration: none;
+    }
+    h2 { font-size: 1.05rem; margin-top: 1.75rem; margin-bottom: 0.5rem; color: #333; border-bottom: 1px solid var(--border); padding-bottom: 0.35rem; }
+    h3 { font-size: 0.9rem; margin: 1rem 0 0.4rem; color: #444; }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    code, pre { font-family: ui-monospace, monospace; font-size: 0.85em; }
+    :not(pre) > code { background: #e8eaed; padding: 0.12em 0.35em; border-radius: 4px; }
+    pre {
+      background: #1e1e1e;
+      color: #e6e6e6;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 0.5rem 0;
+    }
+    pre code {
+      background: none;
+      padding: 0;
+      border-radius: 0;
+      color: inherit;
+    }
+    ul { padding-left: 1.25rem; margin: 0.4rem 0; }
+    .badge { display: inline-block; font-size: 0.75rem; font-weight: 600; padding: 0.15em 0.5em; border-radius: 4px; margin-right: 0.35rem; }
+    .badge-ok { background: #e6f4ea; color: var(--ok); }
+    .badge-nfr { background: #e8f0fe; color: var(--accent); }
+    .hero { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1rem 1.15rem; margin-bottom: 1rem; }
+    .hero p { margin: 0.4rem 0; }
+    .status-ok { color: var(--ok); font-weight: 600; }
+    .grid { display: grid; gap: 0.75rem; margin: 0.75rem 0; }
+    @media (min-width: 520px) { .grid-2 { grid-template-columns: 1fr 1fr; } }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 0.85rem 1rem; font-size: 0.9rem; }
+    .card strong { display: block; margin-bottom: 0.25rem; font-size: 0.95rem; }
+    .card p { margin: 0.35rem 0; color: #444; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin: 0.5rem 0; background: var(--card); border-radius: 8px; overflow: hidden; border: 1px solid var(--border); }
+    th, td { padding: 0.45rem 0.65rem; text-align: left; border-bottom: 1px solid #eee; }
+    th { background: #f8f9fa; font-weight: 600; }
+    tr:last-child td { border-bottom: none; }
+    .highlight { background: #fef7e0; }
+    .links-row { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; margin-top: 0.5rem; }
+    footer { margin-top: 2rem; font-size: 0.8rem; color: #80868b; }
+  </style>
+</head>
+<body>
+
+  <header class="top-bar">
+    <div class="top-title">
+      <h1>Parallel Ecommerce Ecosystem</h1>
+      <p class="subtitle">Spring Boot 3.4 · Java 17 · PostgreSQL · Parallel Programming course (NFR #1–#5)</p>
+    </div>
+    <a href="/balancer-manager" id="balancer-btn" class="btn-balancer">Balancer manager</a>
+  </header>
+
+  <div class="hero">
+    <p><span class="status-ok">● System running</span> — you reached this page through the Spring Boot app
+      <span id="via-lb"></span>.</p>
+    <p><strong>Summary:</strong> E-commerce API with <em>concurrency-safe checkout</em>, <em>async background tasks</em>,
+      <em>nightly batch aggregation</em> (Spring Batch), and <em>Apache load balancing</em> across two app instances.
+      All five non-functional requirements are implemented and covered by automated tests.</p>
+  </div>
+
+  <h2>Project at a glance (5 NFRs)</h2>
+  <div class="grid grid-2">
+    <div class="card">
+      <span class="badge badge-nfr">NFR #1</span><strong>Optimistic locking</strong>
+      <p><code>@Version</code> on <code>Product</code> + pessimistic lock at checkout. 50 concurrent users, stock=10 → exactly 10 orders, stock=0.</p>
+    </div>
+    <div class="card">
+      <span class="badge badge-nfr">NFR #2</span><strong>HikariCP pool</strong>
+      <p>Tuned <code>maximum-pool-size</code> (default 20). Larger pool → fewer waits under load.</p>
+    </div>
+    <div class="card">
+      <span class="badge badge-nfr">NFR #3</span><strong>Async processing</strong>
+      <p><code>@Async</code> + <code>ThreadPoolTaskExecutor</code> + events after commit. Checkout ~212&nbsp;ms while invoice/email run in background.</p>
+    </div>
+    <div class="card">
+      <span class="badge badge-nfr">NFR #4</span><strong>Spring Batch</strong>
+      <p>Daily sales ETL: 500k order items → 1k product summaries. Up to ~2,493 items/sec (chunk 100k).</p>
+    </div>
+    <div class="card">
+      <span class="badge badge-nfr">NFR #5</span><strong>Load balancer</strong>
+      <p>Apache Round Robin on <code>:9999</code>. Disable <code>app1</code> in balancer-manager → traffic goes to <code>app2</code>.</p>
+    </div>
+  </div>
+
+  <h2>Recorded test results</h2>
+
+  <h3>Full suite (<code>mvn test</code>)</h3>
+  <table>
+    <thead><tr><th>Metric</th><th>Result</th></tr></thead>
+    <tbody>
+      <tr class="highlight"><td><strong>Last run</strong></td><td><strong>21 tests · 0 failures · 1 skipped · BUILD SUCCESS · ~21 s</strong></td></tr>
+      <tr><td>Skipped</td><td><code>DailySalesBatchBenchmarkTest</code> (needs <code>-Dheavy=true</code>)</td></tr>
+      <tr><td>Package layout</td><td><code>com.example.ecosystem.nfr</code> for NFR #1–#5; batch &amp; concurrency at package root</td></tr>
+    </tbody>
+  </table>
+  <pre><code>mvn test</code></pre>
+
+  <h3>Test class naming (JUnit 5)</h3>
+  <p style="font-size:0.9rem;color:#444;margin:0.5rem 0;">
+    Both <code>*Test</code> and <code>*Tests</code> are valid. This project uses
+    <code>Nfr{N}…Tests</code> under <code>nfr/</code> for NFR coverage, and descriptive names elsewhere
+    (e.g. <code>OrderServiceConcurrencyTests</code>, <code>DailySalesBatchJobTest</code>).
+    Maven discovers any public class whose name ends with <code>Test</code> or <code>Tests</code>.
+  </p>
+
+  <h3>Automated tests by NFR</h3>
+  <table>
+    <thead>
+      <tr><th>NFR</th><th>Test class</th><th>Tests</th><th>Status</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>#1</td>
+        <td><code>OrderServiceConcurrencyTests</code></td>
+        <td>1</td>
+        <td><span class="badge badge-ok">PASS</span> — 50 users, stock 10 → 10 orders</td>
+      </tr>
+      <tr>
+        <td>#1</td>
+        <td><code>nfr.Nfr1OptimisticLockingTests</code></td>
+        <td>3</td>
+        <td><span class="badge badge-ok">PASS</span> — <code>@Version</code>, stale version, pessimistic lock</td>
+      </tr>
+      <tr>
+        <td>#2</td>
+        <td><code>nfr.Nfr2HikariPoolTests</code></td>
+        <td>2</td>
+        <td><span class="badge badge-ok">PASS</span> — Hikari type, pool size, concurrent borrow</td>
+      </tr>
+      <tr>
+        <td>#3</td>
+        <td><code>nfr.Nfr3AsyncProcessingTests</code></td>
+        <td>2</td>
+        <td><span class="badge badge-ok">PASS</span> — pool 4/8/100; checkout &lt; 3 s (listener sleeps 5 s)</td>
+      </tr>
+      <tr>
+        <td>#4</td>
+        <td><code>DailySalesBatchJobTest</code></td>
+        <td>2</td>
+        <td><span class="badge badge-ok">PASS</span> — aggregation, idempotency, skip poison row</td>
+      </tr>
+      <tr>
+        <td>#4</td>
+        <td><code>nfr.Nfr4BatchInfrastructureTests</code></td>
+        <td>3</td>
+        <td><span class="badge badge-ok">PASS</span> — job/step beans, chunk size 200 (test profile)</td>
+      </tr>
+      <tr>
+        <td>#4</td>
+        <td><code>nfr.Nfr4BatchControllerTests</code></td>
+        <td>2</td>
+        <td><span class="badge badge-ok">PASS</span> — <code>/batch/job-history</code>, <code>/batch/daily-sales/summary</code></td>
+      </tr>
+      <tr>
+        <td>#4</td>
+        <td><code>DailySalesBatchBenchmarkTest</code></td>
+        <td>1</td>
+        <td>SKIPPED unless <code>-Dheavy=true</code></td>
+      </tr>
+      <tr>
+        <td>#5</td>
+        <td><code>nfr.Nfr5LoadBalancerConfigTests</code></td>
+        <td>4</td>
+        <td><span class="badge badge-ok">PASS</span> — <code>httpd.conf</code>, compose files, landing page</td>
+      </tr>
+      <tr>
+        <td>—</td>
+        <td><code>EcosystemApplicationTests</code></td>
+        <td>1</td>
+        <td><span class="badge badge-ok">PASS</span> — Spring context loads</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>NFR #1 — Concurrency scenarios (historical)</h3>
+  <table>
+    <thead>
+      <tr><th>Scenario</th><th>Successful checkouts</th><th>Final stock</th><th>Maven</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>No protection</td><td>50</td><td>wrong (overselling)</td><td>FAILURE</td></tr>
+      <tr><td><code>@Version</code> only (no pessimistic)</td><td>—</td><td>—</td><td>FAILURE (optimistic lock)</td></tr>
+      <tr class="highlight"><td><strong>Current: pessimistic + @Version</strong></td><td><strong>10</strong></td><td><strong>0</strong></td><td><span class="badge badge-ok">SUCCESS</span></td></tr>
+    </tbody>
+  </table>
+  <pre><code>mvn test -Dtest=OrderServiceConcurrencyTests,Nfr1OptimisticLockingTests</code></pre>
+
+  <h3>NFR #3 — Async checkout</h3>
+  <table>
+    <thead><tr><th>Metric</th><th>Result</th></tr></thead>
+    <tbody>
+      <tr><td>Checkout (integration test)</td><td>&lt; 3 s while listener sleeps 5 s</td></tr>
+      <tr><td>Background work</td><td>Invoice, email, audit on <code>Async-Executor-*</code></td></tr>
+      <tr><td>Thread pool</td><td>core=4, max=8, queue=100</td></tr>
+    </tbody>
+  </table>
+  <pre><code>mvn test -Dtest=Nfr3AsyncProcessingTests</code></pre>
+
+  <h3>NFR #4 — Batch benchmark (500,000 rows, H2)</h3>
+  <table>
+    <thead>
+      <tr><th>Chunk size</th><th>Job time</th><th>Throughput</th><th>Commits</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>2,000</td><td>6m 18s</td><td>1,322 items/sec</td><td>251</td></tr>
+      <tr><td>10,000</td><td>4m 04s</td><td>2,044 items/sec</td><td>51</td></tr>
+      <tr class="highlight"><td><strong>100,000</strong></td><td><strong>3m 20s</strong></td><td><strong>2,493 items/sec</strong></td><td>6</td></tr>
+    </tbody>
+  </table>
+  <p>Heavy benchmark: status <code>COMPLETED</code>, 0 skips, 1,000 summary rows (one per product).</p>
+  <pre><code>mvn test -Dtest=DailySalesBatchJobTest,Nfr4BatchInfrastructureTests,Nfr4BatchControllerTests
+mvn test -Dtest=DailySalesBatchBenchmarkTest -Dheavy=true</code></pre>
+
+  <h3>Run by NFR (optional)</h3>
+  <pre><code>mvn test -Dtest='com.example.ecosystem.nfr.Nfr1*'
+mvn test -Dtest='com.example.ecosystem.nfr.Nfr2*'
+mvn test -Dtest='com.example.ecosystem.nfr.Nfr3*'
+mvn test -Dtest='com.example.ecosystem.nfr.Nfr4*',DailySalesBatchJobTest
+mvn test -Dtest='com.example.ecosystem.nfr.Nfr5*'</code></pre>
+
+  <h2>Try it live</h2>
+
+  <div class="card">
+    <strong>Load balancer stack</strong> — <code>docker compose up</code>
+    <p>Public entry: <code>http://localhost:9999</code> (this page). Apache proxies to <code>app1</code> / <code>app2</code> on port 8081 inside Docker.</p>
+    <div class="links-row">
+      <a href="/balancer-manager">Balancer manager</a>
+      <a href="/server-status">Server status</a>
+      <a href="/batch/job-history">Batch job history</a>
+    </div>
+  </div>
+
+  <div class="card">
+    <strong>Single-app stack</strong> — <code>docker compose -f docker-compose.dev.yml up</code>
+    <p>Use <code>http://localhost:8080</code> — same API paths; no Apache balancer UI on this port.</p>
+  </div>
+
+  <h2>Batch API</h2>
+  <ul>
+    <li><a href="/batch/job-history">GET /batch/job-history</a></li>
+    <li><code>POST /batch/daily-sales?date=YYYY-MM-DD</code> (sync — may take minutes)</li>
+    <li><a href="/batch/daily-sales/summary?date=2026-05-13">GET /batch/daily-sales/summary</a> (change date)</li>
+  </ul>
+  <pre><code id="curl-host">curl -X POST "http://localhost:9999/batch/daily-sales?date=2026-05-13"
+curl "http://localhost:9999/batch/daily-sales/summary?date=2026-05-13"</code></pre>
+
+  <h2>REST API samples</h2>
+  <ul>
+    <li><a href="/api/products">GET /api/products</a></li>
+    <li><a href="/api/categories">GET /api/categories</a></li>
+    <li><a href="/api/users">GET /api/users</a></li>
+  </ul>
+  <p>Checkout: <code>POST /api/users/{userId}/orders/checkout</code> — see <code>postman_collection.json</code> in the repo.</p>
+
+  <h2>NFR #5 demo (balancer)</h2>
+  <ol>
+    <li>Open <a href="/balancer-manager">balancer-manager</a>.</li>
+    <li>Disable <code>app1</code> → Submit.</li>
+    <li>Refresh and send requests — counters should move to <code>app2</code> only.</li>
+  </ol>
+
+  <footer>
+  Full report: <code>README.MD</code> in the repository · Rebuild Docker after UI changes:
+  <code>docker compose build app1 app2 &amp;&amp; docker compose up -d</code>
+  </footer>
+
+  <script>
+    (function () {
+      var port = window.location.port || (window.location.protocol === 'https:' ? '443' : '80');
+      var host = window.location.hostname;
+      var base = window.location.protocol + '//' + host + (port ? ':' + port : '');
+      var lb = document.getElementById('via-lb');
+      if (lb) {
+        lb.textContent = port === '9999' || port === ''
+          ? ' (via Apache load balancer on :9999)'
+          : ' (direct on :' + port + ')';
+      }
+      var curl = document.getElementById('curl-host');
+      if (curl) {
+        curl.textContent =
+          'curl -X POST "' + base + '/batch/daily-sales?date=2026-05-13"\n' +
+          'curl "' + base + '/batch/daily-sales/summary?date=2026-05-13"';
+      }
+      var balancerBtn = document.getElementById('balancer-btn');
+      if (balancerBtn) {
+        var onLb = port === '9999' || port === '';
+        var lbBase = window.location.protocol + '//' + host + ':9999';
+        balancerBtn.href = onLb ? '/balancer-manager' : lbBase + '/balancer-manager';
+        if (!onLb) {
+          balancerBtn.title = 'Apache balancer UI is on port 9999 (not ' + port + ')';
+        }
+      }
+    })();
+  </script>
+</body>
+</html>
