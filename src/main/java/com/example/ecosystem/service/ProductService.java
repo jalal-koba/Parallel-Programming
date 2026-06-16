@@ -5,6 +5,8 @@ import com.example.ecosystem.Entity.Product;
 import com.example.ecosystem.dto.ProductRequest;
 import com.example.ecosystem.repository.CategoryRepository;
 import com.example.ecosystem.repository.ProductRepository;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,16 +21,19 @@ public class ProductService {
         this.categoryRepository = categoryRepository;
     }
 
+    @CacheEvict(value = "productsList", allEntries = true)
     public Product createProduct(ProductRequest request) {
         Product product = new Product();
         applyProductRequest(product, request);
         return productRepository.save(product);
     }
 
+    @Cacheable(value = "productsList")
     public List<Product> getAllProducts() {
         return productRepository.findAll();
     }
 
+    @Cacheable(value = "product", key = "#productId")
     public Product getProduct(Long productId) {
         return productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found: " + productId));
@@ -41,12 +46,14 @@ public class ProductService {
         return productRepository.findByCategoryId(categoryId);
     }
 
+    @CacheEvict(value = {"product", "productsList"}, key = "#productId", allEntries = false)
     public Product updateProduct(Long productId, ProductRequest request) {
         Product product = getProduct(productId);
         applyProductRequest(product, request);
         return productRepository.save(product);
     }
 
+    @CacheEvict(value = {"product", "productsList"}, key = "#productId", allEntries = false)
     public void deleteProduct(Long productId) {
         Product product = getProduct(productId);
         productRepository.delete(product);
