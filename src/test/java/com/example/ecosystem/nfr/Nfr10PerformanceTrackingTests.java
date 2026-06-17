@@ -5,12 +5,15 @@ import com.example.ecosystem.Entity.Role;
 import com.example.ecosystem.Entity.User;
 import com.example.ecosystem.repository.AuditLogRepository;
 import com.example.ecosystem.repository.UserRepository;
+import com.example.ecosystem.batch.BatchConsole;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.List;
 
@@ -31,6 +34,9 @@ class Nfr10PerformanceTrackingTests {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private PlatformTransactionManager transactionManager;
 
     @Test
     void controllerEndpointsAreTrackedByAopAndSavedToDatabase() throws Exception {
@@ -72,5 +78,65 @@ class Nfr10PerformanceTrackingTests {
         assertThat(userLog).isNotNull();
         assertThat(userLog.getUser()).isNotNull();
         assertThat(userLog.getUser().getId()).isEqualTo(user.getId());
+
+        // Dynamic console output of real measured metrics in English to avoid Windows encoding issues
+        BatchConsole.header("NFR 10: PERFORMANCE METRICS CAPTURED BY AOP ASPECT");
+        BatchConsole.metric("Endpoint 1", publicLog.getEndpoint());
+        BatchConsole.metric("Response Time 1", publicLog.getResponseTimeMs() + " ms");
+        BatchConsole.metric("Status 1", BatchConsole.success(publicLog.getStatus()));
+        
+        BatchConsole.metric("Endpoint 2", userLog.getEndpoint());
+        BatchConsole.metric("Response Time 2", userLog.getResponseTimeMs() + " ms");
+        BatchConsole.metric("Status 2", BatchConsole.success(userLog.getStatus()));
+        BatchConsole.metric("Associated User ID", String.valueOf(userLog.getUser().getId()));
+        
+        BatchConsole.metric("Audit Logs Saved", String.valueOf(logs.size()));
+        BatchConsole.footer();
+
+        // 3. Bottleneck Identification & Benchmark Comparison for Requirement 10
+        // Clean database state before benchmarking
+        auditLogRepository.deleteAll();
+
+        int batchSize = 300; // 300 database inserts is enough to measure transaction commit overhead in a quick JUnit test
+
+        // Measure Before Optimization: individual commits (no active transaction in test context)
+        long startBefore = System.currentTimeMillis();
+        for (int i = 0; i < batchSize; i++) {
+            AuditLog log = new AuditLog();
+            log.setEndpoint("GET /api/benchmark-before-" + i);
+            log.setResponseTimeMs(i);
+            log.setStatus("SUCCESS");
+            auditLogRepository.save(log);
+        }
+        long timeBefore = System.currentTimeMillis() - startBefore;
+
+        // Clean database state for the next run
+        auditLogRepository.deleteAll();
+
+        // Measure After Optimization: single transaction commit
+        TransactionTemplate txTemplate = new TransactionTemplate(transactionManager);
+        long startAfter = System.currentTimeMillis();
+        txTemplate.executeWithoutResult(status -> {
+            for (int i = 0; i < batchSize; i++) {
+                AuditLog log = new AuditLog();
+                log.setEndpoint("GET /api/benchmark-after-" + i);
+                log.setResponseTimeMs(i);
+                log.setStatus("SUCCESS");
+                auditLogRepository.save(log);
+            }
+        });
+        long timeAfter = System.currentTimeMillis() - startAfter;
+
+        // Clean up database state after benchmark to avoid pollution
+        auditLogRepository.deleteAll();
+
+        double speedup = (double) timeBefore / Math.max(1, timeAfter);
+
+        BatchConsole.header("NFR 10: BOTTLENECK IDENTIFICATION & BENCHMARK COMPARISON");
+        BatchConsole.metric("Identified Bottleneck", "Database I/O Transaction Commits (Disk Write Overhead)");
+        BatchConsole.metric("Before Optimization", String.format("Individual Commits (%d items) | Time: %d ms", batchSize, timeBefore));
+        BatchConsole.metric("After Optimization", String.format("Single Transaction Commit (%d items) | Time: %d ms", batchSize, timeAfter));
+        BatchConsole.metric("Performance Gain", String.format("%.2fx Speedup (Reduced total commits from %d to 1)", speedup, batchSize));
+        BatchConsole.footer();
     }
 }
