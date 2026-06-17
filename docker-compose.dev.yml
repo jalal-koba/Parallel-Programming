@@ -11,34 +11,28 @@ services:
       - "5434:5432"
     volumes:
       - postgres_final_data:/var/lib/postgresql/data
-    networks:
-      - app-network
 
   redis:
     image: redis:alpine
-    container_name: redis_cache
+    container_name: redis_cache_dev
     ports:
       - "6379:6379"
-    networks:
-      - app-network
 
   app:
     build: .
-    container_name: dev_app
-    ports:
-      - "8080:8080"
-    environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/ecosystem
-      - SPRING_DATASOURCE_USERNAME=user
-      - SPRING_DATASOURCE_PASSWORD=pass
-      - SERVER_PORT=8080
-      - SPRING_BATCH_JOB_ENABLED=false
-      - REDIS_HOST=redis
+    container_name: ecosystem_app
     depends_on:
       - db
       - redis
-    networks:
-      - app-network
+    ports:
+      - "8080:8080"
+    environment:
+      SERVER_PORT: 8080
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/parallel-ecommerce
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: m8498069
+      SPRING_BATCH_JOB_ENABLED: "false"
+      REDIS_HOST: redis
 
 volumes:
   postgres_final_data:

@@ -29,74 +29,44 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
     private final ApplicationEventPublisher eventPublisher;
+    private final org.redisson.api.RedissonClient redissonClient;
+    private final OrderTransactionService orderTransactionService;
 
     public OrderService(
             CartRepository cartRepository,
             CartItemRepository cartItemRepository,
             OrderRepository orderRepository,
             ProductRepository productRepository,
-            ApplicationEventPublisher eventPublisher
+            ApplicationEventPublisher eventPublisher,
+            org.redisson.api.RedissonClient redissonClient,
+            OrderTransactionService orderTransactionService
     ) {
         this.cartRepository = cartRepository;
         this.cartItemRepository = cartItemRepository;
         this.orderRepository = orderRepository;
         this.productRepository = productRepository;
         this.eventPublisher = eventPublisher;
+        this.redissonClient = redissonClient;
+        this.orderTransactionService = orderTransactionService;
     }
 
-    @Transactional
     public OrderResponse checkout(Long userId) {
-        Cart cart = cartRepository.findByUserId(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Cart not found for user: " + userId));
-
-        List<CartItem> cartItems = new ArrayList<>(cart.getItems());
-        if (cartItems.isEmpty()) {
-            throw new IllegalStateException("Cannot checkout an empty cart");
-        }
-
-        cartItems.sort(Comparator.comparing(item -> item.getProduct().getId()));
-
-        Order order = new Order();
-        order.setUser(cart.getUser());
-        order.setCreatedAt(LocalDateTime.now());
-        order.setStatus("COMPLETED");
-
-        List<OrderItem> orderItems = new ArrayList<>();
-        float totalAmount = 0F;
-
-        for (CartItem cartItem : cartItems) {
-            Product product = productRepository.findByIdWithPessimisticLock(cartItem.getProduct().getId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Product not found: " + cartItem.getProduct().getId()));
-
-            if (product.getStockQuantity() < cartItem.getQuantity()) {
-                throw new InsufficientStockException("Not enough stock for product: " + product.getId());
+        org.redisson.api.RLock lock = redissonClient.getLock("checkout:lock:user:" + userId);
+        try {
+            // Using tryLock with waitTime to allow Watchdog to extend lease time automatically
+            if (lock.tryLock(5, java.util.concurrent.TimeUnit.SECONDS)) {
+                return orderTransactionService.executeCheckoutTransaction(userId);
+            } else {
+                throw new IllegalStateException("Checkout is already in progress for this user. Please try again.");
             }
-
-            product.setStockQuantity(product.getStockQuantity() - cartItem.getQuantity());
-            totalAmount += product.getPrice() * cartItem.getQuantity();
-
-            OrderItem orderItem = new OrderItem();
-            orderItem.setOrder(order);
-            orderItem.setProduct(product);
-            orderItem.setQuantity(cartItem.getQuantity());
-            orderItem.setUnitPriceAtPurchase(product.getPrice());
-            orderItems.add(orderItem);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("Checkout interrupted", e);
+        } finally {
+            if (lock.isHeldByCurrentThread()) {
+                lock.unlock();
+            }
         }
-
-        order.setTotalAmount(totalAmount);
-        order.setItems(orderItems);
-        Order savedOrder = orderRepository.save(order);
-
-        eventPublisher.publishEvent(
-                new OrderCreatedEvent(
-                        savedOrder.getId(),
-                        savedOrder.getUser().getId(),
-                        savedOrder.getTotalAmount()
-                )
-        );
-
-        cartItemRepository.deleteByCart(cart);
-        return toOrderResponse(savedOrder);
     }
 
     @Transactional(readOnly = true)
