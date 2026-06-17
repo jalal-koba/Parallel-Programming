@@ -28,10 +28,6 @@ public class ProductService {
         return productRepository.save(product);
     }
 
-    /**
-     * 🔥 تم التعديل هنا: استخدام دالة الـ JOIN FETCH لمنع مشكلة الـ N+1 Queries
-     * التي كانت تتسبب في خنق السيرفر وإفشال التست بنسبة 100%.
-     */
     //@Cacheable(value = "productsList")
     public List<Product> getAllProducts() {
         return productRepository.findAllWithCategory(); 
