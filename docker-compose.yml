@@ -26,6 +26,7 @@ services:
       - SPRING_DATASOURCE_PASSWORD=pass
       - SERVER_PORT=8081
       - SPRING_BATCH_JOB_ENABLED=false
+      - REDIS_HOST=redis
     depends_on:
       - db
       - redis
@@ -40,6 +41,7 @@ services:
       - SPRING_DATASOURCE_PASSWORD=pass
       - SERVER_PORT=8081
       - SPRING_BATCH_JOB_ENABLED=false
+      - REDIS_HOST=redis
     depends_on:
       - db
       - redis
