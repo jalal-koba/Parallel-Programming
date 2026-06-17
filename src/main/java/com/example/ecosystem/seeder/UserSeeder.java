@@ -1,10 +1,8 @@
 package com.example.ecosystem.seeder;
-
 import com.example.ecosystem.Entity.Role;
 import com.example.ecosystem.Entity.User;
 import net.datafaker.Faker;
 import org.springframework.stereotype.Component;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;

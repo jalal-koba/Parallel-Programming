@@ -28,12 +28,16 @@ public class ProductService {
         return productRepository.save(product);
     }
 
-    @Cacheable(value = "productsList")
+    /**
+     * 🔥 تم التعديل هنا: استخدام دالة الـ JOIN FETCH لمنع مشكلة الـ N+1 Queries
+     * التي كانت تتسبب في خنق السيرفر وإفشال التست بنسبة 100%.
+     */
+    //@Cacheable(value = "productsList")
     public List<Product> getAllProducts() {
-        return productRepository.findAll();
+        return productRepository.findAllWithCategory(); 
     }
 
-    @Cacheable(value = "product", key = "#productId")
+@Cacheable(value = "product", key = "#productId")
     public Product getProduct(Long productId) {
         return productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found: " + productId));

@@ -62,43 +62,50 @@ public class SeederRunner implements CommandLineRunner {
     }
 
     @Override
-    public void run(String... args) {
-        System.out.println("=================================");
-        System.out.println("SEED CHECK START");
-        System.out.println("=================================");
+public void run(String... args) {
+    System.out.println("=================================");
+    System.out.println("SEED CHECK START");
+    System.out.println("=================================");
 
-        if (userRepository.count() > 0) {
-            System.out.println("✅ Database already seeded. Skipping...");
-            return;
-        }
-
-        System.out.println("Seeding: " + userCount + " users / " + productCount + " products / " + orderCount + " orders");
-        long start = System.currentTimeMillis();
-
-        // Categories
-        List<Category> categories = categoryRepository.saveAll(categorySeeder.generateCategories());
+    // 1. فحص ذكي: إذا كانت التصنيفات موجودة مسبقاً، نجلبها من قاعدة البيانات بدلاً من إعادة إنشائها
+    List<Category> categories;
+    if (categoryRepository.count() > 0) {
+        System.out.println("ℹ️ Categories already exist. Loading from DB...");
+        categories = categoryRepository.findAll();
+    } else {
+        categories = categoryRepository.saveAll(categorySeeder.generateCategories());
         System.out.println("✅ Categories seeded: " + categories.size());
-
-        // Users (batched)
-        List<User> allUsers = userSeeder.generateUsers(userCount);
-        saveInBatches(allUsers, userRepository::saveAll);
-        System.out.println("✅ Users seeded: " + allUsers.size());
-
-        // Products (batched, with real category references)
-        List<Product> allProducts = productSeeder.generateProducts(productCount, categories);
-        saveInBatches(allProducts, productRepository::saveAll);
-        System.out.println("✅ Products seeded: " + allProducts.size());
-
-        // Orders (batched)
-        List<Order> allOrders = orderSeeder.generateOrders(orderCount, allUsers, allProducts);
-        saveInBatches(allOrders, orderRepository::saveAll);
-        System.out.println("✅ Orders seeded: " + allOrders.size());
-
-        long elapsed = System.currentTimeMillis() - start;
-        System.out.println("=================================");
-        System.out.println("SEEDING COMPLETED in " + elapsed + " ms");
-        System.out.println("=================================");
     }
+
+    // 2. فحص جدول المستخدمين بشكل مستقل
+    if (userRepository.count() > 0) {
+        System.out.println("✅ Database already has users. Skipping rest of seeding...");
+        return;
+    }
+
+    System.out.println("Seeding: " + userCount + " users / " + productCount + " products / " + orderCount + " orders");
+    long start = System.currentTimeMillis();
+
+    // Users (batched)
+    List<User> allUsers = userSeeder.generateUsers(userCount);
+    saveInBatches(allUsers, userRepository::saveAll);
+    System.out.println("✅ Users seeded: " + allUsers.size());
+
+    // Products (batched, with real category references)
+    List<Product> allProducts = productSeeder.generateProducts(productCount, categories);
+    saveInBatches(allProducts, productRepository::saveAll);
+    System.out.println("✅ Products seeded: " + allProducts.size());
+
+    // Orders (batched)
+    List<Order> allOrders = orderSeeder.generateOrders(orderCount, allUsers, allProducts);
+    saveInBatches(allOrders, orderRepository::saveAll);
+    System.out.println("✅ Orders seeded: " + allOrders.size());
+
+    long elapsed = System.currentTimeMillis() - start;
+    System.out.println("=================================");
+    System.out.println("SEEDING COMPLETED in " + elapsed + " ms");
+    System.out.println("=================================");
+}
 
     private <T> void saveInBatches(List<T> items, java.util.function.Consumer<List<T>> saver) {
         for (int i = 0; i < items.size(); i += BATCH_SIZE) {

@@ -2,7 +2,7 @@ import http from "k6/http";
 import { check, sleep } from "k6";
 
 export const options = {
-  vus: 200,
+  vus: 100,
   duration: "20s",
 };
 

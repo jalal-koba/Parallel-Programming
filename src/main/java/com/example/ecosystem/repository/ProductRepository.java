@@ -14,6 +14,14 @@ import java.util.List;
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
 
+    /**
+     * 🔥 حل مشكلة الاختناق (Bottleneck): منع الـ N+1 Queries
+     * يجلب جميع المنتجات مع الـ Category الخاصة بها في طلب SQL واحد مشترك (JOIN FETCH)
+     * بدلاً من ضرب قاعدة البيانات بـ 1000 طلب منفصل لكل منتج تحت الضغط العالي.
+     */
+    @Query("SELECT p FROM Product p JOIN FETCH p.category")
+    List<Product> findAllWithCategory();
+
     // البحث العادي - يستخدمه "علي" لتطبيق الـ Caching لاحقاً
     Optional<Product> findByName(String name);
 
