@@ -10,6 +10,14 @@ services:
     networks:
       - app-network
 
+  redis:
+    image: redis:alpine
+    container_name: redis_cache
+    ports:
+      - "6379:6379"
+    networks:
+      - app-network
+
   app1:
     build: .
     environment:
@@ -18,8 +26,12 @@ services:
       - SPRING_DATASOURCE_PASSWORD=pass
       - SERVER_PORT=8081
       - SPRING_BATCH_JOB_ENABLED=false
+      - SPRING_DATA_REDIS_HOST=redis
+    ports:
+      - "8081:8081" # ربط المنفذ لتستطيع الحاوية استقبال حركة المرور
     depends_on:
       - db
+      - redis
     networks:
       - app-network
 
@@ -29,10 +41,15 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/ecosystem
       - SPRING_DATASOURCE_USERNAME=user
       - SPRING_DATASOURCE_PASSWORD=pass
-      - SERVER_PORT=8081
+      - SERVER_PORT=8082
       - SPRING_BATCH_JOB_ENABLED=false
+      - SPRING_DATA_REDIS_HOST=redis
+    ports:
+      - "8082:8082" # ربط المنفذ لتستطيع الحاوية استقبال حركة المرور
+
     depends_on:
       - db
+      - redis
     networks:
       - app-network
 
