@@ -1,10 +1,14 @@
 package com.example.ecosystem.Entity;
 
 import jakarta.persistence.*;
+import java.io.Serializable;
 
 @Entity
 @Table(name = "products")
-public class Product {
+public class Product implements Serializable {
+    
+    private static final long serialVersionUID = 1L;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -20,7 +24,7 @@ public class Product {
     @Column(name = "stock_quantity")
     private Integer stockQuantity;
 
-    @Version // للتعامل مع العمليات المتوازية ومنع التضارب
+    @Version
     private Integer version;
 
     @ManyToOne

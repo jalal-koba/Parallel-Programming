@@ -453,3 +453,10 @@ Parallel-Programming/
 - **Landing page (when app is running):** http://localhost:9999/ or http://localhost:8080/
 - **Arabic project report:** `PROJECT_REPORT_AR.md`
 - **Postman:** `postman_collection.json`
+
+```
+ load testing command
+```
+```
+Get-Content test/stress-test.js | docker run --rm --network=parallel-programming-main_app-network -e BASE_URL="http://apache_load_balancer:80" -i grafana/k6 run -
+```

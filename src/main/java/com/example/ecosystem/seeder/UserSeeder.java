@@ -20,22 +20,21 @@ public class UserSeeder {
         for (int i = 0; i < count; i++) {
             User user = new User();
 
-            String username = faker.internet().username() + "_" + i;
+            String baseName = faker.name().firstName().toLowerCase() + "." + faker.name().lastName().toLowerCase();
+            String username = baseName + "_" + i;
+            
             user.setUsername(username);
-
-            // Guaranteed unique email
-            String email = username.toLowerCase() + "@ecosystem.local";
-            user.setEmail(email);
-
+            user.setEmail(username + "@ecosystem.local");
             user.setPassword(faker.internet().password());
             user.setRole(Role.customer);
 
             users.add(user);
 
-            if (i % 500 == 0) {
-                System.out.println("Generated users: " + i);
+            if (i % 50 == 0) {
+                System.out.println("Generated " + i + " users so far...");
             }
         }
+        System.out.println("Successfully generated " + count + " users.");
         return users;
     }
 }
