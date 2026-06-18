@@ -26,8 +26,8 @@ public class RedisCacheConfig {
     public RedisCacheManagerBuilderCustomizer redisCacheManagerBuilderCustomizer() {
         return (builder) -> builder
                 .withCacheConfiguration("product",
-                        RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(10)))
+                        cacheConfiguration().entryTtl(Duration.ofMinutes(10)))
                 .withCacheConfiguration("productsList",
-                        RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(5)));
+                        cacheConfiguration().entryTtl(Duration.ofMinutes(5)));
     }
 }
