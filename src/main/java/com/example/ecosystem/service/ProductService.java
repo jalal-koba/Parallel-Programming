@@ -8,6 +8,7 @@ import com.example.ecosystem.repository.ProductRepository;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -27,6 +28,20 @@ public class ProductService {
         applyProductRequest(product, request);
         return productRepository.save(product);
     }
+
+    @Transactional
+    public void createProductsTransactional(List<ProductRequest> requests) {
+        for (ProductRequest request : requests) {
+            createProduct(request);
+        }
+    }
+
+    public void createProductsNonTransactional(List<ProductRequest> requests) {
+        for (ProductRequest request : requests) {
+            createProduct(request);
+        }
+    }
+
 
     @Cacheable(value = "productsList")
     public List<Product> getAllProducts() {

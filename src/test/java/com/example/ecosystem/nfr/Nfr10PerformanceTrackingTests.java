@@ -3,8 +3,11 @@ package com.example.ecosystem.nfr;
 import com.example.ecosystem.Entity.AuditLog;
 import com.example.ecosystem.Entity.Role;
 import com.example.ecosystem.Entity.User;
+import com.example.ecosystem.dto.ProductRequest;
 import com.example.ecosystem.repository.AuditLogRepository;
+import com.example.ecosystem.repository.ProductRepository;
 import com.example.ecosystem.repository.UserRepository;
+import com.example.ecosystem.service.ProductService;
 import com.example.ecosystem.batch.BatchConsole;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -12,9 +15,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.support.TransactionTemplate;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -36,7 +38,11 @@ class Nfr10PerformanceTrackingTests {
     private UserRepository userRepository;
 
     @Autowired
-    private PlatformTransactionManager transactionManager;
+    private ProductRepository productRepository;
+
+    @Autowired
+    private ProductService productService;
+
 
     @Test
     void controllerEndpointsAreTrackedByAopAndSavedToDatabase() throws Exception {
@@ -95,47 +101,38 @@ class Nfr10PerformanceTrackingTests {
 
         // 3. Bottleneck Identification & Benchmark Comparison for Requirement 10
         // Clean database state before benchmarking
-        auditLogRepository.deleteAll();
+        productRepository.deleteAll();
 
-        int batchSize = 300; // 300 database inserts is enough to measure transaction commit overhead in a quick JUnit test
-
-        // Measure Before Optimization: individual commits (no active transaction in test context)
-        long startBefore = System.currentTimeMillis();
+        int batchSize = 100; // 100 products is a good size for measuring transaction commit overhead in a quick JUnit test
+        List<ProductRequest> requests = new ArrayList<>();
         for (int i = 0; i < batchSize; i++) {
-            AuditLog log = new AuditLog();
-            log.setEndpoint("GET /api/benchmark-before-" + i);
-            log.setResponseTimeMs(i);
-            log.setStatus("SUCCESS");
-            auditLogRepository.save(log);
+            requests.add(new ProductRequest("Product-" + i, "Desc-" + i, 10.0f + i, 100 + i, null));
         }
+
+        // Measure Before Optimization: individual commits (no active transaction in service method)
+        long startBefore = System.currentTimeMillis();
+        productService.createProductsNonTransactional(requests);
         long timeBefore = System.currentTimeMillis() - startBefore;
+        assertThat(productRepository.count()).isEqualTo(batchSize);
 
         // Clean database state for the next run
-        auditLogRepository.deleteAll();
+        productRepository.deleteAll();
 
-        // Measure After Optimization: single transaction commit
-        TransactionTemplate txTemplate = new TransactionTemplate(transactionManager);
+        // Measure After Optimization: single transaction commit (annotated with @Transactional)
         long startAfter = System.currentTimeMillis();
-        txTemplate.executeWithoutResult(status -> {
-            for (int i = 0; i < batchSize; i++) {
-                AuditLog log = new AuditLog();
-                log.setEndpoint("GET /api/benchmark-after-" + i);
-                log.setResponseTimeMs(i);
-                log.setStatus("SUCCESS");
-                auditLogRepository.save(log);
-            }
-        });
+        productService.createProductsTransactional(requests);
         long timeAfter = System.currentTimeMillis() - startAfter;
+        assertThat(productRepository.count()).isEqualTo(batchSize);
 
         // Clean up database state after benchmark to avoid pollution
-        auditLogRepository.deleteAll();
+        productRepository.deleteAll();
 
         double speedup = (double) timeBefore / Math.max(1, timeAfter);
 
         BatchConsole.header("NFR 10: BOTTLENECK IDENTIFICATION & BENCHMARK COMPARISON");
-        BatchConsole.metric("Identified Bottleneck", "Database I/O Transaction Commits (Disk Write Overhead)");
-        BatchConsole.metric("Before Optimization", String.format("Individual Commits (%d items) | Time: %d ms", batchSize, timeBefore));
-        BatchConsole.metric("After Optimization", String.format("Single Transaction Commit (%d items) | Time: %d ms", batchSize, timeAfter));
+        BatchConsole.metric("Identified Bottleneck", "Database I/O Transaction Commits (Individual Saves vs Single Transaction Commit)");
+        BatchConsole.metric("Before Optimization", String.format("Non-Transactional Batch (%d items) | Time: %d ms", batchSize, timeBefore));
+        BatchConsole.metric("After Optimization", String.format("Transactional Batch (%d items) | Time: %d ms", batchSize, timeAfter));
         BatchConsole.metric("Performance Gain", String.format("%.2fx Speedup (Reduced total commits from %d to 1)", speedup, batchSize));
         BatchConsole.footer();
     }
